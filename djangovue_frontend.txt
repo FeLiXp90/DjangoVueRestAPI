@@ -1,0 +1,225 @@
+#Com base no tutorial de Django(REST API) + Vue.js do Leonardo Lourenco
+#https://github.com/Leonardo-Lourenco/rest-api-django-vueJS
+
+#requirements.txt
+#-------
+Django==5.2.6
+django-cors-headers==4.7.0
+djangorestframework==3.16.1
+django-environ==0.12.0
+Pillow==11.3.0
+#-------
+
+#Criar um venv - virtual enviroments do python
+
+python -m venv venv  #Criar o venv
+
+venv\Scripts\Activate.ps1 #Ativa
+deactive #Desativa
+
+#Criar o projeto Django
+django-admin startproject djangovue . #Colocar "." ao final faz com que ele crie na pasta atual Ex: PS C:\Users\FBecalli\PycharmProjects\Django_Vue\djangovue>
+
+
+#backend/djangovue/settings.py
+from corsheaders.defaults import default_headers #import para trabalhar com API
+import os
+import environ
+
+#reading .env-file
+env = environ.Env()
+environ.Env.read_env()
+
+DEBUG = env('DEBUG') 
+SECRET_KEY = env('SECRET_KEY')
+
+#Criar um .env com os valores de DEBUG e SECRET_KEY
+'''
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG=True
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY=******
+'''
+
+#Criar um .gitignore e adicionar ".env"
+# em INSTALLED_APPS = [] adicionar
+'''
+    'djangovue',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'meusite'
+'''
+# em MIDDLEWARE = [] adicionar
+'''
+    'corsheaders.middleware.CorsMiddleware', #Precisa estar em cima da linha abaixo
+    'django.middleware.common.CommonMiddleware',
+'''
+
+#Criar a lista de dominions e adicionar content-type
+'''
+CORS_ALLOWED_ORIGINS = [
+
+    # adicionar dominios
+    "http://localhost:8000",
+    "http://127.0.0.1:9000",
+    "http://127.0.0.1:8000"
+]
+
+CORS_ALLOWED_HEADERS = list(default_headers) + [
+    'content-type',
+]
+'''
+#LANGUAGE_CODE = 'pt-BR'
+#TIME_ZONE = 'America/Sao_Paulo'
+
+#Criar URL para media e setar a pasta midia para receber os arquivos de imagem.
+'''
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'midia')
+'''
+
+#Setar as configurações da REST_API
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
+
+#python3 manage.py migrate
+#python3 manage.py startapp meusite
+
+#criar os models do BD
+
+#backend/meusite/models.py
+'''
+from django.db import models
+from django.utils import timezone
+from django.contrib.auth.models import User
+# Create your models here.
+
+def user_directory_path(instance, filename):
+    return 'meusite/{0}/{1}'.format(instance.titulo, filename)
+
+class Post(models.Model):
+
+    class PostObjects(models.Manager):
+        def  get_queryset(self):
+            return super().get_queryset() .filter(status= 'publicado')
+
+    opcoes = (
+        ('rascunho', 'Rascunho'), ('publicado', 'Publicado')
+    )
+
+    titulo = models.CharField(max_length=75)
+    thumbnail = models.ImageField(upload_to=user_directory_path, blank=True, null=True)
+    excecao = models.TextField(null=True)
+    conteudo=models.TextField()
+    slug = models.SlugField(max_length=250, unique_for_date='publicado', null=False, unique=True)
+    publicado = models.DateTimeField(default=timezone.now)
+    autor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meusite_user')
+    status= models.CharField(max_length=10, choices=opcoes, default='rascunho')
+    objects = models.Manager()
+    postobjects = PostObjects()
+
+    #ordenar por ordem de postagem
+
+    class Meta:
+        ordering = ('-publicado', )
+    
+    def __str__(self):
+        return self.titulo
+'''
+
+#python3 manage.py makemigrations
+
+#Converter o model para json para consumir no Vue.js
+#backend/meusite/serializers.py
+'''
+#Converter os campos para json da API
+
+from rest_framework import serializers
+from .models import Post
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Post
+        fields=('id','titulo',' thumbnail','conteudo','slug','publicado','autor','status')
+'''
+
+#backend/meusite/views.py
+'''
+from django.shortcuts import render, get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Post
+from .serializers import PostSerializer
+
+
+# Create your views here.
+
+class MeuSiteListView(APIView):
+    def get(self, request, *arg, **kwargs):
+        posts = Post.postobjects.all()[0:4] #[0:4] exibir apenas 4 post por pagina
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+class PostDetailView(APIView):
+    def get(self, request, post_slug, *arg, **kwargs):
+        post = get_object_or_404(Post, slug=post_slug)
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+'''
+
+#backend/djangovue/urls.py
+'''
+from django.contrib import admin
+from django.urls import path, include
+
+#importar bibliotecas para trabalhar com imagens
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    #importando URLS da APP meusite
+    path('meusite/', include('blog.urls', namespace="meusite")),
+    path('api-auth', include('rest_framework.urls'))
+
+]
+
+#adicionar os urls static e media
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+'''
+
+#backend/meusite/urls.py
+'''
+from django.urls import path
+from .views import MeuSiteListView
+from .views import PostDetailView
+
+app_name="meusite"
+
+urlpatterns = [
+    path('post/', MeuSiteListView.as_view()), #quando chamar essa URL ela chama as postagens
+    path('post/<post_slug>/', PostDetailView.as_view()) #vai chamar somente o post do "slug" passado
+]
+'''
+
+#backend/meusite/admin.py
+'''
+from django.contrib import admin
+from .models import Post
+
+# Register your models here.
+admin.site.register(Post)
+'''
+
+#python3 manage.py createsuperuser
+#python3 manage.py runserver
