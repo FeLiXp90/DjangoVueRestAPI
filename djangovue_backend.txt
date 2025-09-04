@@ -1,6 +1,18 @@
 #Com base no tutorial de Django(REST API) + Vue.js do Leonardo Lourenco
 #https://github.com/Leonardo-Lourenco/rest-api-django-vueJS
 
+#Documentações:
+'''
+https://axios-http.com/ptbr/docs/intro
+https://vuejs.org/guide/quick-start
+https://nodejs.org/docs/latest/api/
+https://tailwindcss.com/showcase
+https://docs.djangoproject.com/en/5.2/
+https://tutorial.djangogirls.org/en/deploy/
+https://help.pythonanywhere.com/pages/
+https://docs.docker.com/´
+'''
+
 #requirements.txt
 #-------
 Django==5.2.6
