@@ -21,7 +21,7 @@ E um tambem para o frontend, os dois em txt
 git clone https://github.com//FeLiXp90/DjangoVueRestAPI.git<br>
 cd ../backend<br>
 mv .env.example .env<br>
-cd .. (Volte para a pasta raiz 'DjangoVueRestAPI'<br>
+cd .. (Volte para a pasta raiz 'DjangoVueRestAPI')<br>
 docker-compose up --build
 
 # TUTORIAL LOCAL
