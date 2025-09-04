@@ -1,7 +1,7 @@
 # DjangoVueRestAPI
 Treinando Django e Vue como backend e frontend respectivamente
 
-# Com base no tutorial de Django(REST API) + Vue.js do Leonardo Lourenco
+# Com base no tutorial de Django(REST API) + Vue.js do Leonardo Lourenco + https://tutorial.djangogirls.org/en/deploy/
 # https://github.com/Leonardo-Lourenco/rest-api-django-vueJS
 
 # Documentações:
