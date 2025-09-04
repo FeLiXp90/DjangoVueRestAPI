@@ -25,14 +25,30 @@ https://docs.docker.com/ - Docker
 Fiz um arquivo relatando o que fiz em backend seguindo o tutorial djangogirls + tutorial do leo
 E um tambem para o frontend, os dois em txt
 
-# Criar o banco para funcionar localmente: 
+# TUTORIAL DOCKER
+git clone https://github.com//FeLiXp90/DjangoVueRestAPI.git
+cd ../backend
+mv .env.example .env
+cd .. (Volte para a pasta raiz 'DjangoVueRestAPI'
+docker-compose up --build
+
+# TUTORIAL LOCAL
+
+python3 -m venv venv
+venv\Scripts\Activate.ps1
+cd ../backend
+mv .env.example .env
+pip install -r requirements.txt
+
+# Criar o banco/executar backend localmente: 
 python3 manage.py migrate
 python3 manage.py makemagrations
 Criar Admin:
 python3 manage.py createsuperuser
 python3 manage.py runserver
 
-# Para criar um containers para o projeto com DOCKER:
-cd path...\DjagoVueRestAPI\Django_Vue
-docker-compose up --build
-
+# Executar frontend localmente:
+cd ..
+cd frontend
+npm install
+npm run serve
